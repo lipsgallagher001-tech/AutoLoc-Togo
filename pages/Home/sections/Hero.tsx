@@ -1,0 +1,36 @@
+
+import React from 'react';
+
+const Hero: React.FC = () => {
+  return (
+    <section className="px-6 lg:px-10 py-5">
+      <div className="max-w-[1280px] mx-auto">
+        <div className="@container">
+          <div className="relative min-h-[560px] flex flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-center justify-center p-8 overflow-hidden" style={{ backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.7) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuAowR_02aIh-yOOUmy-3AUecSY64tOKEfpyUTP1QiVfRjAW-sG1x8IoX5PlLpZdH2BfQXAuKJBe2dReXq73_A2kht-1gdAs4qFrS3BmbpzCIzQafudUXIDt2hIRGelTMMpPpkqjV6hdDi8AEX1feEVIhepTTIVOBlsW0iCnBUOE0JMLYg-75KGD8oSPE1tAqD_6dXAOQ1v87YZUkNO-g7QvCD9kIsLhyoXJcD_Yop65A50aEiPvkYd5YWfeup1crtw2-Vltdss_vd9o")' }}>
+            <div className="flex flex-col gap-4 text-center max-w-[800px] z-10">
+              <h1 className="text-white text-4xl font-black leading-tight tracking-[-0.033em] @[480px]:text-6xl">
+                Location de véhicules au Togo
+              </h1>
+              <h2 className="text-white/90 text-lg font-medium leading-relaxed @[480px]:text-xl">
+                Votre partenaire de confiance à Lomé pour une location simple, transparente et humaine. Explorez le Togo en toute sérénité.
+              </h2>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4 z-10">
+              <button 
+                className="flex min-w-[160px] cursor-pointer items-center justify-center rounded-lg h-12 px-6 bg-primary text-white text-base font-bold shadow-lg hover:shadow-primary/20 hover:scale-105 transition-all"
+                onClick={() => window.location.hash = '#/fleet'}
+              >
+                <span>Voir nos véhicules</span>
+              </button>
+              <button className="flex min-w-[160px] cursor-pointer items-center justify-center rounded-lg h-12 px-6 bg-white/20 backdrop-blur-md text-white border border-white/30 text-base font-bold hover:bg-white/30 transition-all">
+                <span>Nous contacter</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Hero;
