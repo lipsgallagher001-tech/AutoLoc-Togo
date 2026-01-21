@@ -1,9 +1,9 @@
 
 import React, { useEffect } from 'react';
-import Hero from './sections/Hero.tsx';
-import WhyChooseUs from './sections/WhyChooseUs.tsx';
-import FeaturedVehicles from './sections/FeaturedVehicles.tsx';
-import Steps from './sections/Steps.tsx';
+import Hero from './sections/Hero';
+import WhyChooseUs from './sections/WhyChooseUs';
+import FeaturedVehicles from './sections/FeaturedVehicles';
+import Steps from './sections/Steps';
 
 const Home: React.FC = () => {
   useEffect(() => {

@@ -1,7 +1,8 @@
 
 import React, { useEffect } from 'react';
-import FleetHeader from './sections/FleetHeader.tsx';
-import VehicleList from './sections/VehicleList.tsx';
+import FleetHeader from './sections/FleetHeader';
+import FleetFilters from './sections/FleetFilters';
+import VehicleGrid from './sections/VehicleGrid';
 
 const Fleet: React.FC = () => {
   useEffect(() => {
@@ -9,9 +10,10 @@ const Fleet: React.FC = () => {
   }, []);
 
   return (
-    <main className="animate-in fade-in duration-500">
+    <main className="max-w-[1280px] mx-auto pb-20">
       <FleetHeader />
-      <VehicleList />
+      <FleetFilters />
+      <VehicleGrid />
     </main>
   );
 };

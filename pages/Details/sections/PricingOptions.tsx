@@ -1,58 +1,109 @@
 
-import React from 'react';
-import Button from '../../../components/UI/Button';
+import React, { useState } from 'react';
 
-interface Props {
-  price: number;
+interface PricingOptionsProps {
+  basePrice: number;
 }
 
-const PricingOptions: React.FC<Props> = ({ price }) => {
-  const options = [
-    { duration: '1 Jour', total: price, label: 'POPULAIRE' },
-    { duration: '3 Jours', total: price * 3 - 15000, sub: `CFA total (${Math.floor((price * 3 - 15000)/3/1000)}k/j)` },
-    { duration: '1 Semaine', total: price * 7 - 70000, sub: `CFA total (${Math.floor((price * 7 - 70000)/7/1000)}k/j)` },
-    { duration: '1 Mois', total: price * 30 - 450000, sub: `CFA total (${Math.floor((price * 30 - 450000)/30/1000)}k/j)` }
+const PricingOptions: React.FC<PricingOptionsProps> = ({ basePrice }) => {
+  const [driverOption, setDriverOption] = useState<'with' | 'without'>('with');
+
+  const pricingPlans = [
+    {
+      duration: '1 Jour',
+      total: basePrice,
+      perDay: basePrice,
+      isPopular: true,
+    },
+    {
+      duration: '3 Jours',
+      total: basePrice * 3 * 0.89, // 11% discount
+      perDay: basePrice * 0.89,
+      isPopular: false,
+    },
+    {
+      duration: '1 Semaine',
+      total: basePrice * 7 * 0.78, // 22% discount
+      perDay: basePrice * 0.78,
+      isPopular: false,
+    },
+    {
+      duration: '1 Mois',
+      total: basePrice * 30 * 0.67, // 33% discount
+      perDay: basePrice * 0.67,
+      isPopular: false,
+    },
   ];
 
   return (
-    <div className="bg-white p-10 rounded-3xl border border-gray-100 shadow-sm space-y-10">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-black">Options de Location</h2>
-        <div className="flex p-1 bg-gray-100 rounded-xl text-xs">
-          <button className="bg-white px-4 py-2 rounded-lg shadow-sm font-bold text-[#1D7AFC]">Avec Chauffeur</button>
-          <button className="px-4 py-2 rounded-lg font-bold text-gray-400">Sans Chauffeur</button>
+    <section className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <h3 className="text-xl font-bold">Options de Location</h3>
+        {/* Toggle Switch */}
+        <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg w-fit">
+          <button
+            onClick={() => setDriverOption('with')}
+            className={`px-4 py-2 text-sm font-bold rounded-md transition-all ${
+              driverOption === 'with'
+                ? 'bg-white dark:bg-gray-900 shadow-sm text-primary'
+                : 'text-gray-500 hover:text-primary'
+            }`}
+          >
+            Avec Chauffeur
+          </button>
+          <button
+            onClick={() => setDriverOption('without')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              driverOption === 'without'
+                ? 'bg-white dark:bg-gray-900 shadow-sm text-primary'
+                : 'text-gray-500 hover:text-primary'
+            }`}
+          >
+            Sans Chauffeur
+          </button>
         </div>
       </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {options.map((opt, i) => (
-          <div key={i} className={`relative p-6 rounded-2xl border-2 transition-all cursor-pointer ${i === 0 ? 'border-blue-500 bg-blue-50/30' : 'border-gray-100 hover:border-blue-200'}`}>
-            {opt.label && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full">
-                {opt.label}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {pricingPlans.map((plan, index) => (
+          <div
+            key={index}
+            className={`bg-white dark:bg-gray-900 p-5 rounded-xl text-center shadow-lg relative overflow-hidden cursor-pointer transition-all hover:scale-105 ${
+              plan.isPopular
+                ? 'border-2 border-primary'
+                : 'border border-gray-100 dark:border-gray-800 hover:border-primary'
+            }`}
+          >
+            {plan.isPopular && (
+              <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                POPULAIRE
               </div>
             )}
-            <p className="text-center text-gray-500 text-sm mb-2">{opt.duration}</p>
-            <p className="text-center text-2xl font-black text-gray-900">{opt.total.toLocaleString()}</p>
-            <p className="text-center text-[10px] text-gray-400 font-bold">{opt.sub || 'CFA / jour'}</p>
+            <p className="text-sm text-gray-500 mb-1">{plan.duration}</p>
+            <p className={`text-2xl font-bold ${plan.isPopular ? 'text-primary' : ''}`}>
+              {Math.round(plan.total).toLocaleString()}
+            </p>
+            <p className="text-xs text-gray-500">
+              {index === 0
+                ? 'CFA / jour'
+                : `CFA total (${Math.round(plan.perDay / 1000)}k/j)`}
+            </p>
           </div>
         ))}
       </div>
-
-      <Button 
-        fullWidth 
-        className="!py-6 !rounded-2xl text-lg flex items-center justify-center gap-3"
-        onClick={() => window.location.hash = '#/booking'}
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        Réserver ce véhicule
-      </Button>
-
-      <div className="flex justify-center items-center gap-2 text-gray-400 text-xs font-bold">
-         <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-         Assurance tous risques et assistance 24/7 incluses
+      <div className="pt-4">
+        <button
+          onClick={() => (window.location.hash = '#/booking')}
+          className="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl text-lg shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+        >
+          <span className="material-symbols-outlined">event_available</span>
+          Réserver ce véhicule
+        </button>
+        <p className="text-center text-xs text-gray-500 mt-3 flex items-center justify-center gap-1">
+          <span className="material-symbols-outlined text-[14px]">verified_user</span>
+          Assurance tous risques et assistance 24/7 incluses
+        </p>
       </div>
-    </div>
+    </section>
   );
 };
 
