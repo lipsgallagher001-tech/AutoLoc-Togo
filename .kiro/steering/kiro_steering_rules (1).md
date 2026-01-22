@@ -921,4 +921,697 @@ export default function VehiclesPage() {
    // ❌ JAMAIS
    const supabase = createClient(url, serviceRoleKey)
    
-   // ✅ TO
+   // ✅ TOUJOURS
+   const supabase = createClient(url, anonKey)
+   ```
+
+3. **Désactiver Row Level Security**
+   ```sql
+   -- ❌ JAMAIS
+   ALTER TABLE vehicles DISABLE ROW LEVEL SECURITY;
+   
+   -- ✅ TOUJOURS
+   ALTER TABLE vehicles ENABLE ROW LEVEL SECURITY;
+   CREATE POLICY "policy_name" ON vehicles FOR SELECT USING (true);
+   ```
+
+4. **Oublier la validation des données**
+   ```typescript
+   // ❌ JAMAIS
+   await supabase.from('bookings').insert(req.body)
+   
+   // ✅ TOUJOURS
+   const validated = BookingSchema.parse(req.body)
+   await supabase.from('bookings').insert(validated)
+   ```
+
+5. **Utiliser 'use client' partout**
+   ```typescript
+   // ❌ JAMAIS (sauf si nécessaire)
+   'use client'
+   export default function Page() {}
+   
+   // ✅ TOUJOURS (Server Component par défaut)
+   export default async function Page() {}
+   ```
+
+6. **Fetch côté client au lieu de Server Component**
+   ```typescript
+   // ❌ JAMAIS
+   'use client'
+   const [data, setData] = useState([])
+   useEffect(() => { fetch('/api/data') }, [])
+   
+   // ✅ TOUJOURS
+   const data = await fetchData() // Server Component
+   ```
+
+7. **Images non optimisées**
+   ```tsx
+   // ❌ JAMAIS
+   <img src="/vehicle.jpg" />
+   
+   // ✅ TOUJOURS
+   <Image src="/vehicle.jpg" width={800} height={600} alt="Vehicle" />
+   ```
+
+8. **Pas de gestion d'erreurs**
+   ```typescript
+   // ❌ JAMAIS
+   const data = await supabase.from('vehicles').select()
+   return data
+   
+   // ✅ TOUJOURS
+   const { data, error } = await supabase.from('vehicles').select()
+   if (error) throw error
+   return data
+   ```
+
+9. **SQL Injection via inputs utilisateur**
+   ```typescript
+   // ❌ JAMAIS
+   const query = `SELECT * FROM vehicles WHERE id = ${userId}`
+   
+   // ✅ TOUJOURS
+   const { data } = await supabase
+     .from('vehicles')
+     .select()
+     .eq('id', userId) // Paramétré automatiquement
+   ```
+
+10. **Oublier les metadata SEO**
+    ```typescript
+    // ❌ JAMAIS
+    export default function Page() {}
+    
+    // ✅ TOUJOURS
+    export const metadata: Metadata = {
+      title: 'Page Title',
+      description: 'Page description'
+    }
+    export default function Page() {}
+    ```
+
+---
+
+## 🎨 Styles et UI
+
+### Tailwind CSS - Bonnes pratiques
+
+```tsx
+// ✅ CORRECT: Composition de classes
+const buttonVariants = {
+  primary: 'bg-blue-600 hover:bg-blue-700 text-white',
+  secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900',
+  danger: 'bg-red-600 hover:bg-red-700 text-white'
+}
+
+export function Button({ variant = 'primary', children }: ButtonProps) {
+  return (
+    <button className={`rounded-lg px-4 py-2 font-medium transition-colors ${buttonVariants[variant]}`}>
+      {children}
+    </button>
+  )
+}
+
+// ✅ CORRECT: Responsive design mobile-first
+<div className="
+  w-full              /* Mobile par défaut */
+  sm:w-1/2            /* Tablette */
+  lg:w-1/3            /* Desktop */
+  xl:w-1/4            /* Large desktop */
+">
+  {/* Contenu */}
+</div>
+
+// ✅ CORRECT: Dark mode
+<div className="
+  bg-white text-gray-900
+  dark:bg-gray-900 dark:text-white
+">
+  {/* Contenu */}
+</div>
+
+// ✅ CORRECT: États interactifs
+<button className="
+  bg-blue-600
+  hover:bg-blue-700
+  active:bg-blue-800
+  focus:ring-2 focus:ring-blue-500 focus:outline-none
+  disabled:opacity-50 disabled:cursor-not-allowed
+  transition-all duration-200
+">
+  Cliquez-moi
+</button>
+```
+
+---
+
+## 📝 Formulaires et Validation
+
+### Pattern recommandé avec React Hook Form + Zod
+
+```typescript
+// lib/utils/validators.ts
+import { z } from 'zod'
+
+export const BookingFormSchema = z.object({
+  vehicleId: z.string().uuid('ID véhicule invalide'),
+  fullName: z.string()
+    .min(3, 'Le nom doit contenir au moins 3 caractères')
+    .max(100, 'Le nom ne peut pas dépasser 100 caractères'),
+  email: z.string()
+    .email('Email invalide'),
+  phone: z.string()
+    .regex(/^\+228\d{8}$/, 'Numéro de téléphone togolais invalide (+228XXXXXXXX)'),
+  startDate: z.string()
+    .datetime('Date de début invalide')
+    .refine(date => new Date(date) > new Date(), 'La date doit être dans le futur'),
+  endDate: z.string()
+    .datetime('Date de fin invalide'),
+  option: z.enum(['self-drive', 'with-driver'], {
+    errorMap: () => ({ message: 'Option invalide' })
+  }),
+  paymentMethod: z.enum(['delivery', 'online'])
+}).refine(data => new Date(data.endDate) > new Date(data.startDate), {
+  message: 'La date de fin doit être après la date de début',
+  path: ['endDate']
+})
+
+export type BookingFormData = z.infer<typeof BookingFormSchema>
+
+// components/forms/BookingForm.tsx
+'use client'
+
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { BookingFormSchema, type BookingFormData } from '@/lib/utils/validators'
+
+export function BookingForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<BookingFormData>({
+    resolver: zodResolver(BookingFormSchema)
+  })
+
+  const onSubmit = async (data: BookingFormData) => {
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      
+      if (!response.ok) throw new Error('Erreur lors de la réservation')
+      
+      const result = await response.json()
+      // Redirection vers page de succès
+      window.location.href = `/booking/success?id=${result.bookingId}`
+      
+    } catch (error) {
+      console.error(error)
+      alert('Erreur lors de la réservation')
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div>
+        <label htmlFor="fullName" className="block text-sm font-medium">
+          Nom complet
+        </label>
+        <input
+          {...register('fullName')}
+          type="text"
+          id="fullName"
+          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+        />
+        {errors.fullName && (
+          <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
+        )}
+      </div>
+
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium">
+          Email
+        </label>
+        <input
+          {...register('email')}
+          type="email"
+          id="email"
+          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2"
+        />
+        {errors.email && (
+          <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+        )}
+      </div>
+
+      {/* Autres champs... */}
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+      >
+        {isSubmitting ? 'Réservation en cours...' : 'Confirmer la réservation'}
+      </button>
+    </form>
+  )
+}
+```
+
+---
+
+## 🧪 Tests
+
+### Tests unitaires avec Vitest
+
+```typescript
+// __tests__/utils/validators.test.ts
+import { describe, it, expect } from 'vitest'
+import { BookingFormSchema } from '@/lib/utils/validators'
+
+describe('BookingFormSchema', () => {
+  it('valide un booking correct', () => {
+    const validBooking = {
+      vehicleId: '123e4567-e89b-12d3-a456-426614174000',
+      fullName: 'Jean Dupont',
+      email: 'jean@example.com',
+      phone: '+22890123456',
+      startDate: new Date(Date.now() + 86400000).toISOString(), // Demain
+      endDate: new Date(Date.now() + 172800000).toISOString(), // Après-demain
+      option: 'self-drive' as const,
+      paymentMethod: 'online' as const
+    }
+
+    const result = BookingFormSchema.safeParse(validBooking)
+    expect(result.success).toBe(true)
+  })
+
+  it('rejette un email invalide', () => {
+    const invalidBooking = {
+      // ... autres champs valides
+      email: 'email-invalide'
+    }
+
+    const result = BookingFormSchema.safeParse(invalidBooking)
+    expect(result.success).toBe(false)
+  })
+
+  it('rejette une date de fin avant la date de début', () => {
+    const invalidBooking = {
+      // ... autres champs valides
+      startDate: new Date(Date.now() + 172800000).toISOString(),
+      endDate: new Date(Date.now() + 86400000).toISOString()
+    }
+
+    const result = BookingFormSchema.safeParse(invalidBooking)
+    expect(result.success).toBe(false)
+  })
+})
+
+// __tests__/components/VehicleCard.test.tsx
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { VehicleCard } from '@/components/VehicleCard'
+
+describe('VehicleCard', () => {
+  const mockVehicle = {
+    id: '1',
+    name: 'Toyota Camry',
+    category: 'Berline',
+    pricePerDay: 25000,
+    imageUrl: '/vehicles/camry.jpg',
+    rating: 4.5,
+    withDriver: true
+  }
+
+  it('affiche le nom du véhicule', () => {
+    render(<VehicleCard vehicle={mockVehicle} />)
+    expect(screen.getByText('Toyota Camry')).toBeInTheDocument()
+  })
+
+  it('affiche le prix correct', () => {
+    render(<VehicleCard vehicle={mockVehicle} />)
+    expect(screen.getByText(/25\.000 FCFA/)).toBeInTheDocument()
+  })
+})
+```
+
+---
+
+## 🔄 État Global avec Zustand
+
+```typescript
+// lib/store/booking-store.ts
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+
+interface BookingState {
+  vehicleId: string | null
+  startDate: string | null
+  endDate: string | null
+  option: 'self-drive' | 'with-driver' | null
+  
+  setVehicle: (id: string) => void
+  setDates: (start: string, end: string) => void
+  setOption: (option: 'self-drive' | 'with-driver') => void
+  reset: () => void
+}
+
+export const useBookingStore = create<BookingState>()(
+  persist(
+    (set) => ({
+      vehicleId: null,
+      startDate: null,
+      endDate: null,
+      option: null,
+      
+      setVehicle: (id) => set({ vehicleId: id }),
+      setDates: (start, end) => set({ startDate: start, endDate: end }),
+      setOption: (option) => set({ option }),
+      reset: () => set({
+        vehicleId: null,
+        startDate: null,
+        endDate: null,
+        option: null
+      })
+    }),
+    {
+      name: 'booking-storage' // Clé localStorage
+    }
+  )
+)
+
+// Utilisation dans un composant
+'use client'
+
+import { useBookingStore } from '@/lib/store/booking-store'
+
+export function BookingWidget() {
+  const { vehicleId, setVehicle } = useBookingStore()
+  
+  return (
+    <div>
+      <button onClick={() => setVehicle('vehicle-123')}>
+        Réserver ce véhicule
+      </button>
+      {vehicleId && <p>Véhicule sélectionné: {vehicleId}</p>}
+    </div>
+  )
+}
+```
+
+---
+
+## 🌐 Internationalisation (i18n)
+
+```typescript
+// app/[lang]/layout.tsx
+import { i18n } from '@/i18n-config'
+
+export async function generateStaticParams() {
+  return i18n.locales.map((locale) => ({ lang: locale }))
+}
+
+export default function RootLayout({
+  children,
+  params: { lang }
+}: {
+  children: React.ReactNode
+  params: { lang: string }
+}) {
+  return (
+    <html lang={lang}>
+      <body>{children}</body>
+    </html>
+  )
+}
+
+// lib/dictionaries.ts
+const dictionaries = {
+  fr: () => import('@/dictionaries/fr.json').then((module) => module.default),
+  en: () => import('@/dictionaries/en.json').then((module) => module.default)
+}
+
+export const getDictionary = async (locale: string) => {
+  return dictionaries[locale as keyof typeof dictionaries]()
+}
+
+// dictionaries/fr.json
+{
+  "home": {
+    "title": "Louez votre véhicule premium",
+    "subtitle": "La solution de location de confiance au Togo",
+    "cta": "Voir la flotte"
+  },
+  "booking": {
+    "title": "Réservation",
+    "submit": "Confirmer la réservation"
+  }
+}
+
+// app/[lang]/page.tsx
+import { getDictionary } from '@/lib/dictionaries'
+
+export default async function HomePage({
+  params: { lang }
+}: {
+  params: { lang: string }
+}) {
+  const dict = await getDictionary(lang)
+  
+  return (
+    <div>
+      <h1>{dict.home.title}</h1>
+      <p>{dict.home.subtitle}</p>
+    </div>
+  )
+}
+```
+
+---
+
+## 📊 Monitoring et Analytics
+
+```typescript
+// lib/analytics.ts
+export const trackEvent = (eventName: string, properties?: Record<string, any>) => {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, properties)
+  }
+}
+
+// Utilisation
+trackEvent('booking_started', {
+  vehicle_id: vehicleId,
+  vehicle_category: category
+})
+
+trackEvent('booking_completed', {
+  booking_id: bookingId,
+  total_price: totalPrice,
+  duration_days: days
+})
+
+// lib/error-tracking.ts
+import * as Sentry from '@sentry/nextjs'
+
+export const trackError = (error: Error, context?: Record<string, any>) => {
+  console.error(error)
+  
+  if (process.env.NODE_ENV === 'production') {
+    Sentry.captureException(error, {
+      extra: context
+    })
+  }
+}
+```
+
+---
+
+## 🚀 Déploiement et CI/CD
+
+### Vercel (recommandé pour Next.js)
+
+```bash
+# .env.production
+NEXT_PUBLIC_SUPABASE_URL=https://prod.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx
+SUPABASE_SERVICE_ROLE_KEY=eyJxxx (Variable Vercel)
+
+STRIPE_SECRET_KEY=sk_live_xxx (Variable Vercel)
+STRIPE_WEBHOOK_SECRET=whsec_xxx (Variable Vercel)
+```
+
+### GitHub Actions
+
+```yaml
+# .github/workflows/ci.yml
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run TypeScript check
+        run: npm run type-check
+        
+      - name: Run linter
+        run: npm run lint
+        
+      - name: Run tests
+        run: npm run test
+        
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+```
+
+---
+
+## 📦 Scripts package.json
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "prepare": "husky install",
+    "db:generate-types": "supabase gen types typescript --project-id YOUR_PROJECT_ID > types/database.types.ts",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset"
+  }
+}
+```
+
+---
+
+## 🎓 Ressources complémentaires
+
+### Documentation essentielle (2026)
+- Next.js 15: https://nextjs.org/docs
+- Supabase: https://supabase.com/docs
+- TypeScript: https://www.typescriptlang.org/docs
+- Tailwind CSS: https://tailwindcss.com/docs
+- React 19: https://react.dev
+- Zod: https://zod.dev
+- React Hook Form: https://react-hook-form.com
+
+### Outils de développement
+- Supabase CLI: https://supabase.com/docs/guides/cli
+- Vercel CLI: https://vercel.com/docs/cli
+- ESLint: https://eslint.org/docs/latest
+- Prettier: https://prettier.io/docs
+
+### Communautés et support
+- Next.js Discord: https://nextjs.org/discord
+- Supabase Discord: https://discord.supabase.com
+- TypeScript Community: https://discord.gg/typescript
+
+---
+
+## 📞 Support et Contact
+
+### En cas de blocage
+
+1. **Consulter la documentation officielle** (liens ci-dessus)
+2. **Vérifier cette checklist** de rules steering
+3. **Analyser les erreurs** dans la console
+4. **Chercher sur GitHub Issues** du framework concerné
+5. **Poser une question** sur Discord/Stack Overflow
+
+---
+
+## 🎯 Conclusion
+
+Ce document de **Rules Steering** est un guide complet pour garantir que **Kiro AI IDE** :
+
+✅ **Produit du code de qualité production**  
+✅ **Respecte les standards 2026**  
+✅ **Consulte systématiquement la documentation**  
+✅ **Évite les erreurs critiques**  
+✅ **Optimise performance et sécurité**  
+✅ **Maintient la cohérence architecturale**
+
+### Rappel des principes CORE
+
+**C - Consulter** la documentation avant toute action  
+**O - Optimiser** pour la performance et le SEO  
+**R - Respecter** les standards TypeScript et Next.js  
+**E - Éviter** les 10 erreurs critiques listées
+
+---
+
+**Version:** 1.0  
+**Dernière mise à jour:** 22 janvier 2026  
+**Projet:** AutoLoc Togo  
+**Auteur:** Documentation technique AutoLoc  
+**Statut:** Document vivant - À mettre à jour régulièrement
+
+---
+
+## ⚡ Quick Reference
+
+```typescript
+// Template de composant Server
+export default async function Page() {
+  const data = await fetchData()
+  return <Component data={data} />
+}
+
+// Template de composant Client
+'use client'
+export function Interactive() {
+  const [state, setState] = useState()
+  return <div onClick={() => setState(x)} />
+}
+
+// Template API Route
+import { NextRequest, NextResponse } from 'next/server'
+export async function POST(req: NextRequest) {
+  const validated = Schema.parse(await req.json())
+  const result = await processData(validated)
+  return NextResponse.json(result)
+}
+
+// Template Supabase Query
+const { data, error } = await supabase
+  .from('table')
+  .select('*')
+  .eq('column', value)
+if (error) throw error
+return data
+```
+
+---
+
+**🚀 Bon développement avec Kiro AI IDE !**
