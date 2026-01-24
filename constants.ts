@@ -1,5 +1,5 @@
 
-import { CarCategory, Transmission, Vehicle } from './types';
+import { CarCategory, Transmission, Vehicle, Driver, DriverStatus } from './types';
 
 export const COLORS = {
   primary: '#137fec',
@@ -44,4 +44,72 @@ export const MOCK_VEHICLES: Vehicle[] = [
     rating: 5.0,
     withDriver: true
   }
+];
+
+export const MOCK_DRIVERS: Driver[] = [
+  {
+    id: '1',
+    name: 'Kofi Mensah',
+    driverId: 'AL-2024-042',
+    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+    phone: '+228 90 00 00 01',
+    whatsapp: '+228 90 00 00 01',
+    status: DriverStatus.AVAILABLE,
+    currentVehicle: null,
+    licenseNumber: 'TG-DL-2020-12345',
+    experience: 8,
+    rating: 4.9,
+  },
+  {
+    id: '2',
+    name: 'Amivi Lawson',
+    driverId: 'AL-2024-015',
+    photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+    phone: '+228 91 23 45 67',
+    whatsapp: '+228 91 23 45 67',
+    status: DriverStatus.ON_MISSION,
+    currentVehicle: 'Toyota Hilux - TG 1234-AB',
+    licenseNumber: 'TG-DL-2019-67890',
+    experience: 10,
+    rating: 4.8,
+  },
+  {
+    id: '3',
+    name: 'Yao Adama',
+    driverId: 'AL-2024-008',
+    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
+    phone: '+228 92 11 22 33',
+    whatsapp: '+228 92 11 22 33',
+    status: DriverStatus.OFF_DUTY,
+    currentVehicle: null,
+    licenseNumber: 'TG-DL-2021-11223',
+    experience: 5,
+    rating: 4.7,
+  },
+  {
+    id: '4',
+    name: 'Fatou Traoré',
+    driverId: 'AL-2024-029',
+    photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
+    phone: '+228 93 45 67 89',
+    whatsapp: '+228 93 45 67 89',
+    status: DriverStatus.ON_MISSION,
+    currentVehicle: 'Mercedes E-Class - TG 5678-CD',
+    licenseNumber: 'TG-DL-2018-44556',
+    experience: 12,
+    rating: 5.0,
+  },
+  {
+    id: '5',
+    name: 'Kwame Asante',
+    driverId: 'AL-2024-033',
+    photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
+    phone: '+228 94 56 78 90',
+    whatsapp: '+228 94 56 78 90',
+    status: DriverStatus.AVAILABLE,
+    currentVehicle: null,
+    licenseNumber: 'TG-DL-2020-77889',
+    experience: 7,
+    rating: 4.6,
+  },
 ];

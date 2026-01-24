@@ -9,6 +9,7 @@ import Booking from './pages/Booking/Booking';
 import Success from './pages/Success/Success';
 import About from './pages/About/About';
 import Contact from './pages/Contact/Contact';
+import Admin from './pages/Admin/Admin';
 
 const App: React.FC = () => {
   const [route, setRoute] = useState(window.location.hash || '#/');
@@ -42,30 +43,45 @@ const App: React.FC = () => {
   }, []);
 
   const renderPage = () => {
+    console.log('Current route:', route); // Debug
+
     if (route.startsWith('#/details/')) return <Details />;
     if (route === '#/fleet') return <Fleet />;
     if (route === '#/booking') return <Booking />;
     if (route === '#/success') return <Success />;
     if (route === '#/about') return <About />;
     if (route === '#/contact') return <Contact />;
-    
+    // Routes Administration
+    if (route.startsWith('#/admin')) {
+      const adminPath = route.split('?')[0].split('#')[1].replace('/admin', '');
+
+      if (adminPath === '/bookings' || adminPath === '/bookings/') return <Admin section="bookings" />;
+      if (adminPath === '/fleet' || adminPath === '/fleet/') return <Admin section="fleet" />;
+      if (adminPath === '/drivers' || adminPath === '/drivers/') return <Admin section="drivers" />;
+      if (adminPath === '/stats' || adminPath === '/stats/') return <Admin section="stats" />;
+      if (adminPath === '/settings' || adminPath === '/settings/') return <Admin section="settings" />;
+
+      return <Admin section="dashboard" />;
+    }
+
     // Par défaut, si c'est une ancre sur la home (ex: #steps) ou la racine
     return <Home />;
   };
 
   const isSuccessPage = route === '#/success';
+  const isAdminPage = route.startsWith('#/admin');
 
   return (
     <div className="flex flex-col min-h-screen">
-      {!isSuccessPage && <Header />}
+      {!isSuccessPage && !isAdminPage && <Header />}
       <div className="flex-grow">
         {renderPage()}
       </div>
-      <Footer />
-      
+      {!isAdminPage && <Footer />}
+
       {/* WhatsApp Floating Button */}
-      <a 
-        className="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform z-[100]" 
+      <a
+        className="fixed bottom-6 right-6 bg-[#25D366] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform z-[100]"
         href="https://wa.me/22800000000"
         target="_blank"
         rel="noopener noreferrer"

@@ -37,3 +37,23 @@ export interface BookingDetails {
   paymentMethod: 'delivery' | 'online';
   totalPrice: number;
 }
+
+export enum DriverStatus {
+  AVAILABLE = 'available',
+  ON_MISSION = 'on-mission',
+  OFF_DUTY = 'off-duty'
+}
+
+export interface Driver {
+  id: string;
+  name: string;
+  driverId: string;
+  photo: string;
+  phone: string;
+  whatsapp: string;
+  status: DriverStatus;
+  currentVehicle: string | null;
+  licenseNumber?: string;
+  experience?: number;
+  rating?: number;
+}

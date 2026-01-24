@@ -24,6 +24,12 @@ const Footer: React.FC = () => {
           <a className="hover:text-primary transition-colors" href="#">
             CGV
           </a>
+          <a 
+            className="hover:text-primary transition-colors cursor-pointer" 
+            href="#/admin"
+          >
+            Admin
+          </a>
         </div>
         <div className="flex gap-4">
           <div className="size-10 rounded-full bg-[#f0f2f4] dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 cursor-pointer hover:bg-primary hover:text-white transition-all">
