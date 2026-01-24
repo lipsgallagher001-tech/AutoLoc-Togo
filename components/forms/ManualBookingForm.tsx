@@ -39,7 +39,7 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({ onClose }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-8">
+    <form onSubmit={handleSubmit} className="px-8 py-6 space-y-8">
       {/* Section 1: Sélection du Véhicule */}
       <div className="bg-white dark:bg-[#1a242f] rounded-xl border border-[#dbe0e6] dark:border-[#2d3a4b] overflow-hidden">
         <div className="px-6 py-4 border-b border-[#dbe0e6] dark:border-[#2d3a4b] bg-slate-50 dark:bg-[#1a2632]">
@@ -421,7 +421,7 @@ const ManualBookingForm: React.FC<ManualBookingFormProps> = ({ onClose }) => {
       </div>
 
       {/* Boutons d'action */}
-      <div className="flex items-center justify-end gap-4 pt-6 border-t border-[#dbe0e6] dark:border-[#2d3a4b]">
+      <div className="flex items-center justify-end gap-4 pt-6 border-t border-[#dbe0e6] dark:border-[#2d3a4b] pr-2">
         <button
           type="button"
           onClick={onClose}
